@@ -8,7 +8,7 @@ to/from atomic units.
 
 
 import re
-
+import numpy as np
 from ipi.utils.messages import verbosity, info
 
 
@@ -26,7 +26,7 @@ class Constants(object):
     """
 
     kb = 1.0
-    hbar = 1.0
+    hbar = 1.0/2/np.pi
     amu = 1822.8885
 
 
