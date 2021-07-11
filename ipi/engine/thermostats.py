@@ -74,6 +74,11 @@ class Thermostat(dobject):
         dself.dt = depend_value(name="dt", value=dt)
         dself.ethermo = depend_value(name="ethermo", value=ethermo)
 
+        self.frand0 = open("rand_0.txt", "r")
+        self.frand1 = open("rand_1.txt", "r")
+        self.frand2 = open("rand_2.txt", "r")
+        self.frand3 = open("rand_3.txt", "r")
+
     def bind(self, beads=None, atoms=None, pm=None, nm=None, prng=None, fixdof=None):
         """Binds the appropriate degrees of freedom to the thermostat.
 
@@ -110,6 +115,7 @@ class Thermostat(dobject):
 
         dself = dd(self)
         if beads is not None:
+            print("beads p shape:", beads.p.shape)
             dself.p = beads.p.flatten()
             dself.m = beads.m3.flatten()
         elif atoms is not None:
@@ -210,8 +216,19 @@ class ThermoLangevin(Thermostat):
         p /= sm
 
         et += np.dot(p, p) * 0.5
+        #print("T=%.6e, S=%.6e\n"%(self.T, self.S))
         p *= self.T
+        rdns = []
+        frands = [self.frand0, self.frand1, self.frand2, self.frand3]
+        #frands = [self.frand0]
+        #for frand in frands:
+          #for i in range(20):
+          #print(self.frand0.readline())
+            #rdns.append(frand.readline().split()[2:5])
+        #rdns = np.array(rdns, dtype="float").reshape(-1, )
         p += self.S * self.prng.gvec(len(p))
+        print("In thermo Langevin, p shape:", p.shape)
+        #p += self.S * rdns
         et -= np.dot(p, p) * 0.5
 
         p *= sm
@@ -403,11 +420,14 @@ class ThermoPILE_L(Thermostat):
         """Updates the bound momentum vector with a PILE thermostat."""
 
         self.nm.pnm.hold()
+        #print("beads pnm shape:", self.nm.pnm.shape)
+        print("before o, p = ", self.nm.pnm[:, 0])
         # super-cool! just loop over the thermostats! it's as easy as that!
         for t in self._thermos:
             t.step()
         self.nm.pnm.resume()
         dd(self).ethermo.resume()
+        print("after o, p = ", self.nm.pnm[:, 0])
 
 
 class ThermoSVR(Thermostat):
