@@ -11,7 +11,7 @@ appropriate conserved energy quantity for the ensemble of choice.
 # See the "licenses" directory for full license information.
 
 import numpy as np
-
+# import pdb
 from ipi.engine.motion import Motion
 from ipi.utils.depend import *
 from ipi.engine.thermostats import Thermostat
@@ -611,19 +611,35 @@ class NPTIntegrator(NVTIntegrator):
             raise ValueError(
                 "Seems like no stress tensor was computed by the client. Stopping barostat!"
             )
+        # breakpoint()
+        # import pdb; pdb.set_trace()
+        print("in pstep")
+        print(self.nm.pnm)
         self.barostat.pstep(level)
+        print(self.nm.pnm)
         super(NPTIntegrator, self).pstep(level)
+        print("after NVTIntegrator.pstep")
+        print(self.nm.pnm)
         # self.pconstraints()
 
     def qcstep(self):
         """Velocity Verlet centroid position propagator."""
-
+        print("start qcstep, q:")
+        print(np.array(self.beads.q).reshape(-1, 3))
+        print("\nin qcstep")
+        print(self.nm.pnm)
         self.barostat.qcstep()
+        print("after barostat.qcstep")
+        print(self.nm.pnm)
+        print("\nend qcstep, q:")
+        print(np.array(self.beads.q).reshape(-1, 3))
+        print("\n")
 
     def tstep(self):
         """Velocity Verlet thermostat step"""
 
         self.thermostat.step()
+        # import pdb; pdb.set_trace()
         self.barostat.thermostat.step()
         # self.pconstraints()
 

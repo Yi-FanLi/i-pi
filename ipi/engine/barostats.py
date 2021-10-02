@@ -294,6 +294,10 @@ class Barostat(dobject):
         q = dstrip(self.beads.q)
         qc = dstrip(self.beads.qc)
         pc = dstrip(self.beads.pc)
+        print("in kstress_mts, pc:", pc)
+        print("bead p:", self.beads.p)
+        print("bead nm.p:", self.nm.beads.p)
+        print("bead pnm:", self.nm.pnm)
         m = dstrip(self.beads.m)
         na3 = 3 * self.beads.natoms
         fall = dstrip(self.forces.forces_mts(level))
@@ -312,7 +316,7 @@ class Barostat(dobject):
         if level == self.nmtslevels - 1:
             for i in range(3):
                 kst[i, i] += np.dot(pc[i:na3:3], pc[i:na3:3] / m) * self.beads.nbeads
-
+        print("in kstress_mts, kst: ", kst)
         return kst
 
     def get_kstress_sc(self):
@@ -378,6 +382,9 @@ class Barostat(dobject):
         if self.bias is not None and level == 0:
             bvir[:] = self.bias.vir
 
+        print("in stress_mts, vir:", self.forces.vir_mts(level))
+        print("vir trace:", np.trace(self.forces.vir_mts(level)))
+        print("V:", self.cell.V)
         return (
             self.kstress_mts(level) + self.forces.vir_mts(level) + bvir
         ) / self.cell.V
@@ -541,6 +548,8 @@ class BaroBZP(Barostat):
 
     def pstep(self, level=0):
         """Propagates the momentum of the barostat."""
+        print("start of barostat.pstep")
+        print(self.p)
 
         # we are assuming then that p the coupling between p^2 and dp/dt only involves the fast force
         dt = self.pdt[
@@ -551,11 +560,13 @@ class BaroBZP(Barostat):
 
         # computes the pressure associated with the forces at each MTS level.
         press = np.trace(self.stress_mts(level)) / 3.0
+        print("press:", press)
         self.p += dt * 3.0 * (self.cell.V * press)
 
         # integerates the kinetic part of the pressure with the force at the inner-most level.
         if level == self.nmtslevels - 1:
             press = 0
+            print("before p add", self.pext, Constants.kb, self.temp, self.m)
             self.p += (
                 dt
                 * 3.0
@@ -565,20 +576,32 @@ class BaroBZP(Barostat):
                 )
             )
 
+            print("p after adding kinetic part:", self.p)
+
             pc = dstrip(self.beads.pc)
             fc = (
                 np.sum(dstrip(self.forces.forces_mts(level)), axis=0)
                 / self.beads.nbeads
             )
+            print("in barostat, pc:")
+            print(pc)
+            print("nm.beads.pc:")
+            print(self.nm.beads.pc)
+            print("in barostat, fc")
+            print(fc)
             m = dstrip(self.beads.m3)[0]
 
             self.p += (
                 dt2 * np.dot(pc, fc / m) + dt3 * np.dot(fc, fc / m)
             ) * self.beads.nbeads
+        print("end of barostat.pstep")
+        print(self.p)
 
     def qcstep(self):
         """Propagates the centroid position and momentum and the volume."""
 
+        print("start qcstep, cell:\n", self.cell.h)
+        print("vol = ", self.cell.h[0][0]*self.cell.h[1][1]*self.cell.h[2][2])
         v = self.p[0] / self.m[0]
         halfdt = (
             self.qdt
@@ -586,7 +609,10 @@ class BaroBZP(Barostat):
         expq, expp = (np.exp(v * halfdt), np.exp(-v * halfdt))
 
         m = dstrip(self.beads.m3)[0]
-
+        print("\nin qcstep, expq=", expq)
+        print("\n")
+        print("in qcstep, pnm:\n", np.array(self.nm.pnm[0]).reshape(-1, 3))
+        print("in qcstep, pc:\n", np.array(self.beads.pc).reshape(-1, 3))
         self.nm.qnm[0, :] *= expq
         self.nm.qnm[0, :] += ((expq - expp) / (2.0 * v)) * (
             dstrip(self.nm.pnm)[0, :] / m
@@ -594,6 +620,8 @@ class BaroBZP(Barostat):
         self.nm.pnm[0, :] *= expp
 
         self.cell.h *= expq
+        print("end qcstep, cell:\n", self.cell.h)
+        print("vol = ", self.cell.h[0][0]*self.cell.h[1][1]*self.cell.h[2][2])
 
 
 class BaroSCBZP(Barostat):

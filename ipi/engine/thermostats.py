@@ -211,7 +211,7 @@ class ThermoLangevin(Thermostat):
 
         et += np.dot(p, p) * 0.5
         p *= self.T
-        p += self.S * self.prng.gvec(len(p))
+        #p += self.S * self.prng.gvec(len(p))
         et -= np.dot(p, p) * 0.5
 
         p *= sm
