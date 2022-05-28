@@ -416,9 +416,6 @@ class NVEIntegrator(DummyIntegrator):
     def qcstep(self):
         """Velocity Verlet centroid position propagator."""
         # dt/inmts
-        print("centroid momenta")
-        print(self.nm.pnm[0, :])
-        print(dstrip(self.nm.pnm[0, :]))
         self.nm.qnm[0, :] += (
             dstrip(self.nm.pnm)[0, :] / dstrip(self.beads.m3)[0] * self.qdt
         )
