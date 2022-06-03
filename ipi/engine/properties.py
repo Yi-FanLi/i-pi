@@ -252,6 +252,37 @@ class Properties(dobject):
                 "help": "The value of the conserved energy quantity per bead.",
                 "func": (lambda: self.ensemble.econs / float(self.beads.nbeads)),
             },
+            "baro_kin":{
+                "dimension": "energy",
+                "help": "The barostat kinetic energy.",
+                "func": (lambda:self.motion.barostat.kin),
+            },
+            "baro_pot":{
+                "dimension": "energy",
+                "help": "The barostat potential energy.",
+                "func": (lambda:self.motion.barostat.pot),
+            },
+            "baro_cellJ":{
+                "dimension": "energy",
+                "help": "The barostat cell Jacobian.",
+                "func": (lambda:self.motion.barostat.cell_jacobian),
+            },
+            "ebaro":{
+                "dimension": "energy",
+                "help": "The barostat energy.",
+                "func": (lambda:self.motion.barostat.ebaro),
+            },
+            "baro_p":{
+                "dimention": "frequency",
+                "help": "The barostat momentum.",
+                "func": (lambda: self.motion.barostat.p),
+            },
+            "baro_p6":{
+                "dimention": "frequency",
+                "help": "The barostat momentum.",
+                "size": 6,
+                "func": (lambda: self.motion.barostat.p6),
+            },
             "ensemble_lp": {
                 "dimension": "undefined",
                 "help": "The log of the ensemble probability",
